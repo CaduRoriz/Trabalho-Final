@@ -18,7 +18,7 @@ def serve():
     service_pb2_grpc.add_VowelCounterServiceServicer_to_server(VowelCounterService(), server)
     server.add_insecure_port('[::]:50052')
     server.start()
-    print("Servidor B (Python) rodando em porta 50052...")
+    print("Servidor B (Python) rodando em porta 50052...", flush=True)
     try:
         while True:
             time.sleep(86400)
