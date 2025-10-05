@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package textanalyzer;
+
+// Mensagem de entrada
+message TextRequest {
+  string text = 1;
+}
+
+// Resposta de A (contador de palavras)
+message WordCountResponse {
+  int32 word_count = 1;
+}
+
+// Resposta de B (contador de vogais)
+message VowelCountResponse {
+  int32 vowel_count = 1;
+}
+
+// Serviço A (C++)
+service WordCounterService {
+  rpc CountWords(TextRequest) returns (WordCountResponse);
+}
+
+// Serviço B (Python)
+service VowelCounterService {
+  rpc CountVowels(TextRequest) returns (VowelCountResponse);
+}
