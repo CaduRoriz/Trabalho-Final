@@ -1,0 +1,24 @@
+b- grpc 
+cd ~/Documentos/pspd/trabalhoPSPD/grpc
+
+build: docker build -f B-py/Dockerfile -t vowel-counter-python .
+
+run: docker run -p 50052:50052 vowel-counter-python
+
+A -rest
+
+cd ~/Documentos/pspd/trabalhoPSPD/grpc/A-cpp
+
+build: docker build -t word-counter-rest .
+run: docker run -p 6001:6001 word-counter-rest
+
+B -rest
+
+cd ~/Documentos/pspd/trabalhoPSPD/grpc/P-nodejs
+
+build: docker build -t vowel-counter-rest .
+
+run: docker run -p 6002:6002 vowel-counter-rest
+
+
+não consegui resolver conflito entre versões do Abseil que o grpc e o protobuf estavam tentando usar ao mesmo tempo
