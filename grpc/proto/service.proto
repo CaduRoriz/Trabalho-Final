@@ -17,7 +17,7 @@ message VowelCountResponse {
   int32 vowel_count = 1;
 }
 
-// Serviço A (C++)
+// Serviço A (Python)
 service WordCounterService {
   rpc CountWords(TextRequest) returns (WordCountResponse);
 }
