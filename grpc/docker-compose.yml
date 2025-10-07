@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  microservice-a:
+    build:
+      context: .
+      dockerfile: A-py/Dockerfile
+    container_name: microservice-a
+    ports:
+      - "50051:50051"
+    networks:
+      - grpc-net
+
+  microservice-b:
+    build:
+      context: .
+      dockerfile: B-py/Dockerfile
+    container_name: microservice-b
+    ports:
+      - "50052:50052"
+    networks:
+      - grpc-net
+
+  p-gateway:
+    build:
+      context: .
+      dockerfile: P-nodejs/Dockerfile
+    container_name: pnode-gateway
+    ports:
+      - "3000:3000"
+    networks:
+      - grpc-net
+    environment:
+      A_GRPC_HOST: microservice-a
+      A_GRPC_PORT: 50051
+      B_GRPC_HOST: microservice-b
+      B_GRPC_PORT: 50052
+
+networks:
+  grpc-net:
+    driver: bridge

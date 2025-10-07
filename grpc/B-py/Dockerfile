@@ -6,7 +6,7 @@ COPY B-py/requirements.txt .
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt grpcio-tools
 
-# Copia apenas o código Python e o proto
+
 COPY B-py/ ./B-py
 COPY proto/ ./proto
 
