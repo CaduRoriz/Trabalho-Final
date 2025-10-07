@@ -12,8 +12,8 @@ app.post("/analyze-text", async (req, res) => {
   try {
     // Chama os serviços REST A e B
     const [respA, respB] = await Promise.all([
-      axios.post("http://localhost:6001/count-words", { text }),
-      axios.post("http://localhost:6002/count-vowels", { text }),
+      axios.post("http://a-service:6001/count-words", { text }),
+      axios.post("http://b-service:6002/count-vowels", { text }),
     ]);
 
     res.json({
