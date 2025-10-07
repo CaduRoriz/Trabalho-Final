@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-b
+  namespace: pspd-grpc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-b
+  template:
+    metadata:
+      labels:
+        app: grpc-b
+    spec:
+      containers:
+      - name: grpc-b
+        image: pspd/grpc-b:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 50052
+        livenessProbe:
+          tcpSocket: { port: 50052 }
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket: { port: 50052 }
+          initialDelaySeconds: 2
+          periodSeconds: 5

@@ -29,8 +29,8 @@ const grpcOptions = {
 };
 
 // Cria os clients gRPC para A e B
-const clientA = new proto.WordCounterService("microservice-a:50051", grpc.credentials.createInsecure(), grpcOptions);
-const clientB = new proto.VowelCounterService("microservice-b:50052", grpc.credentials.createInsecure(), grpcOptions);
+const clientA = new proto.WordCounterService("grpc-a:50051", grpc.credentials.createInsecure(), grpcOptions);
+const clientB = new proto.VowelCounterService("grpc-b:50052", grpc.credentials.createInsecure(), grpcOptions);
 
 // Endpoint HTTP
 app.post("/analyze-text", (req, res) => {

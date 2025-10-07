@@ -21,4 +21,12 @@ build: docker build -t vowel-counter-rest .
 run: docker run -p 6002:6002 vowel-counter-rest
 
 
+
+NO DO P-NODE grpc
+
+CD GRPC:  docker build -t grpc-gateway -f P-nodejs/Dockerfile .
+
+run: docker run -p 3000:3000 grpc-gateway
+
+
 não consegui resolver conflito entre versões do Abseil que o grpc e o protobuf estavam tentando usar ao mesmo tempo

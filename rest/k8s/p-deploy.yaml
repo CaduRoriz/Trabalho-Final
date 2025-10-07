@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rest-p
+  namespace: pspd-rest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-p
+  template:
+    metadata:
+      labels:
+        app: rest-p
+    spec:
+      containers:
+      - name: rest-p
+        image: pspd/rest-p:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 4000
+        env:
+        - name: SERVER_A_URL
+          value: "http://rest-a:6001"
+        - name: SERVER_B_URL
+          value: "http://rest-b:6002"
+        livenessProbe:
+          tcpSocket: { port: 4000 }
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket: { port: 4000 }
+          initialDelaySeconds: 2
+          periodSeconds: 5

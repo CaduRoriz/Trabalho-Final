@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rest-b
+  namespace: pspd-rest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-b
+  template:
+    metadata:
+      labels:
+        app: rest-b
+    spec:
+      containers:
+      - name: rest-b
+        image: pspd/rest-b:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 6002   
+        livenessProbe:
+          tcpSocket: { port: 6002 }
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket: { port: 6002 }
+          initialDelaySeconds: 2
+          periodSeconds: 5

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rest-a
+  namespace: pspd-rest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-a
+  template:
+    metadata:
+      labels:
+        app: rest-a
+    spec:
+      containers:
+      - name: rest-a
+        image: pspd/rest-a:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 6001   
+        livenessProbe:
+          tcpSocket: { port: 6001 }
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket: { port: 6001 }
+          initialDelaySeconds: 2
+          periodSeconds: 5
