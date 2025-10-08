@@ -5,9 +5,6 @@
 ### Professor: Fernando W. Cruz  
 ### Semestre: 2025/2  
 ### Participantes: 
-- Luana Souza Silva Torres - 1900330110
-- [Nome dos demais integrantes]
-
 
 |          Aluno               |  Matrícula  | 
 |------------------------------|-------------|
