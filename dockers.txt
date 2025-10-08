@@ -1,0 +1,97 @@
+b- grpc 
+cd ~/Documentos/pspd/trabalhoPSPD/grpc
+
+build: docker build -f B-py/Dockerfile -t vowel-counter-python .
+
+run: docker run -p 50052:50052 vowel-counter-python
+
+A -rest
+
+cd ~/Documentos/pspd/trabalhoPSPD/grpc/A-cpp
+
+build: docker build -t word-counter-rest .
+run: docker run -p 6001:6001 word-counter-rest
+
+B -rest
+
+cd ~/Documentos/pspd/trabalhoPSPD/grpc/P-nodejs
+
+build: docker build -t vowel-counter-rest .
+
+run: docker run -p 6002:6002 vowel-counter-rest
+
+
+
+NO DO P-NODE grpc
+
+CD GRPC:  docker build -t grpc-gateway -f P-nodejs/Dockerfile .
+
+run: docker run -p 3000:3000 grpc-gateway
+
+
+não consegui resolver conflito entre versões do Abseil que o grpc e o protobuf estavam tentando usar ao mesmo tempo
+
+
+
+
+
+
+Containers grpc name:
+P-gateway
+microservice-a
+microservice-b
+
+containers rest name:
+pnode-gateway
+b-service
+a-service
+
+
+ testes: fazer as configs de preferencias nos arquivos load-test.js e no diretorio grpc/ ou rest/ rodar o comando: k6 run load-test.js --summary-export nome-arquivo.json
+
+
+config pro aquecimento:
+
+export let options = {
+  scenarios: {
+    carga_fixa: {
+      executor: "constant-arrival-rate",
+      rate: 1000,               //  1000 requisições por unidade de tempo
+      timeUnit: "1s",           // unidade de tempo
+      duration: "300s",         // duração total do teste em segundos
+      preAllocatedVUs: 1000,    // VUs reservados
+      maxVUs: 2000             // limite máximo de VUs
+    },
+  },
+};
+
+
+config media carga: 
+
+export let options = {
+  scenarios: {
+    carga_fixa: {
+      executor: "constant-arrival-rate",
+      rate: 3000,             // 🔥 1000 requisições por segundo
+      timeUnit: "1s",           // unidade de tempo
+      duration: "300s",     // duração total do teste
+      preAllocatedVUs: 1000,  // VUs reservados
+      maxVUs: 2000          // limite máximo de VUs
+    },
+  },
+};
+
+config estresse: 
+
+export let options = {
+  scenarios: {
+    carga_fixa: {
+      executor: "constant-arrival-rate",
+      rate: 5000,             // 🔥 1000 requisições por segundo
+      timeUnit: "1s",           // unidade de tempo
+      duration: "300s",     // duração total do teste
+      preAllocatedVUs: 1000,  // VUs reservados
+      maxVUs: 5000          // limite máximo de VUs
+    },
+  },
+};

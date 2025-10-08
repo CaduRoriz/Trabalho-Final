@@ -4,16 +4,18 @@ import axios from "axios";
 const app = express();
 app.use(express.json());
 
-// Endpoint principal
+// Usa variáveis de ambiente definidas no docker-compose
+const A_SERVICE_URL = process.env.A_SERVICE_URL || "http://localhost:6001";
+const B_SERVICE_URL = process.env.B_SERVICE_URL || "http://localhost:6002";
+
 app.post("/analyze-text", async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: "Campo 'text' é obrigatório." });
 
   try {
-    // Chama os serviços REST A e B
     const [respA, respB] = await Promise.all([
-      axios.post("http://rest-a:6001/count-words", { text }),
-      axios.post("http://rest-b:6002/count-vowels", { text }),
+      axios.post(`${A_SERVICE_URL}/count-words`, { text }),
+      axios.post(`${B_SERVICE_URL}/count-vowels`, { text }),
     ]);
 
     res.json({
@@ -28,4 +30,6 @@ app.post("/analyze-text", async (req, res) => {
 });
 
 const PORT = 4000;
-app.listen(PORT, () => console.log(`Gateway P (REST) rodando em http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Gateway P (REST) rodando em http://localhost:${PORT}`);
+});
