@@ -5,7 +5,7 @@ export let options = {
   scenarios: {
     carga_fixa: {
       executor: "constant-arrival-rate",
-      rate: 5000,             // 🔥 1000 requisições por segundo
+      rate: 5000,             //1000 requisições por segundo
       timeUnit: "1s",           // unidade de tempo
       duration: "300s",     // duração total do teste
       preAllocatedVUs: 1000,  // VUs reservados
