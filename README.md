@@ -12,6 +12,11 @@
 | Carlos Eduardo Miranda Roriz |  190011424  |
 
 
+Link do Repositório: [link no github](https://github.com/luanatorress/trabalhoPSPD)
+
+Link do vídeo de apresentação: [vídeo](https://youtu.be/YQeDbYyEQco)
+
+
 ## 1. Introdução
 
 Este trabalho teve como objetivo aplicar, na prática, os conceitos de Programação para Sistemas Paralelos e Distribuídos, utilizando o framework gRPC e o orquestrador de contêineres Kubernetes (Minikube).  
