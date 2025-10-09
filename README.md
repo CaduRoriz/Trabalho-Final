@@ -213,6 +213,10 @@ minikube service rest-p -n pspd-rest
 
 A partir deste momento é possível fazer requisições via postman pela url fornecida no passo anterior com /analyze-text e um texto no body JSON.
 
+Se for preciso atualizar algum pod:
+```
+kubectl rollout restart deployment grpc-p -n pspd-grpc
+```
 
 ### 6.5 Testes de performance:
 
@@ -580,7 +584,7 @@ Apesar disso, a performance de transferência se manteve estável e rápida.
 - Para ambientes de alta performance e comunicação interna entre serviços, o gRPC é uma escolha superior. Para APIs públicas ou integrações com sistemas heterogêneos, o REST segue sendo uma opção robusta e estável.
 
 
-### Conclusão
+### Conclusão da Comparação REST X gRPC
 
 Após a realização dos testes de carga leve, moderada e estresse, ficou claro que o gRPC oferece melhor desempenho em termos de latência, throughput e uso de recursos dos microserviços, sendo ideal para comunicações internas de alto volume.
 Por outro lado, o REST demonstrou maior estabilidade sob carga extrema, com menos falhas, sendo mais adequado para APIs públicas e sistemas legados.
@@ -591,19 +595,18 @@ Assim, a escolha entre REST e gRPC deve considerar o perfil da aplicação:
 
 - REST para estabilidade, simplicidade e interoperabilidade
 
+## 9. Dificuldades e considerações finais
 
-## 8. Conclusão
+Inicialmente planejamos fazer um serviço mais robusto, mas posteriormente percebemos que fazer microserviços mais simples otimizaria nossos trabalho. 
+Tivemos alguns problemas com os outros integrantes do grupo, inicialmente éramos 5, mas os outros 3 integrantes não participaram ativamente da realização do trabalho, devido a esse fato, foi precioso continuar o trabalho com apenas 2 integrantes. Além disso, tivemos alguns contra-tempos com o serviço A, que inicialmente tinha sido escrito em C++. Tentamos utilizar o Bazel para compilação e posteriormente o CMake, porém obtivemos alguns problemas para rodas os serviços na integração com o DockerFile na máquina de um dos nossos integrantes, sendo assim, optamos por reescrever o serviço A em python como o serviço B.
+
+## 10. Conclusão
 
 A experiência proporcionou uma compreensão prática dos conceitos de computação distribuída, comunicação entre microserviços e orquestração com Kubernetes.
 
 Foi possível observar que o gRPC é significativamente mais eficiente do que o modelo REST tradicional em performance.
 
 Além disso, o uso do Minikube demonstrou como ambientes containerizados podem simular infraestruturas de nuvem de forma simples, eficaz e didática. Este trabalho nos ajudou a compreender mais sobre computação distribuída e diversas tecnologias atuais na prática.
-
-
-
-
-
 
 
 ### Autoavaliação:

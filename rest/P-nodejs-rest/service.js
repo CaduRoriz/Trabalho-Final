@@ -5,8 +5,8 @@ const app = express();
 app.use(express.json());
 
 // Usa variáveis de ambiente definidas no docker-compose
-const A_SERVICE_URL = process.env.A_SERVICE_URL || "http://localhost:6001";
-const B_SERVICE_URL = process.env.B_SERVICE_URL || "http://localhost:6002";
+const A_SERVICE_URL = process.env.A_SERVICE_URL || "http://rest-a:6001";
+const B_SERVICE_URL = process.env.B_SERVICE_URL || "http://rest-b:6002";
 
 app.post("/analyze-text", async (req, res) => {
   const { text } = req.body;
