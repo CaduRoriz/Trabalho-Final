@@ -15,10 +15,17 @@ spec:
     spec:
       containers:
       - name: grpc-p
-        image: pspd/grpc-p:latest
-        imagePullPolicy: Never
+        image: grpc-p:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000  
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "512Mi"
         env:
         - name: SERVER_A_HOST
           value: "grpc-a"
