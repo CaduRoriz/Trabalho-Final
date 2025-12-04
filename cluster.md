@@ -144,3 +144,38 @@ Memória:
 container_memory_usage_bytes{pod=~"grpc-a.*"}
 
 ![Utilizando o exemplo anterior - Memória](assets\memUsageOnlyA.png)
+
+
+## Principais querys Prometheus:
+
+1. ver CPU de todos os pods:
+
+rate(container_cpu_usage_seconds_total{namespace="pspd-grpc"}[1m])
+
+2. CPU por pod:
+
+rate(container_cpu_usage_seconds_total{pod=~"grpc-a.*"}[1m])
+rate(container_cpu_usage_seconds_total{pod=~"grpc-b.*"}[1m])
+rate(container_cpu_usage_seconds_total{pod=~"grpc-p.*"}[1m])
+
+3. Memória de todos os Pods:
+
+container_memory_usage_bytes{namespace="pspd-grpc"}
+
+4. Memória por pod:
+
+container_memory_usage_bytes{pod=~"grpc-a.*"}
+
+5. CPU total usada em cada node:
+
+sum(rate(container_cpu_usage_seconds_total[1m])) by (node)
+
+6. Memória total por node:
+
+sum(container_memory_usage_bytes) by (node)
+
+7. Ver onde cada pod está rodando (distribuição dos nós):
+
+kube_pod_info{namespace="pspd-grpc"}
+
+(não retorna gráfico, retorna txt com serviço e node)
