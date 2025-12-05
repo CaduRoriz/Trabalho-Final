@@ -1,0 +1,9 @@
+testes:
+carga baixa:
+300 req por segundo de maximo com 150 de inicio
+
+carga media:
+800 req por segundo com 400 de inicio
+
+carga alta: 
+1500 req por segundo com 750 de inicio
