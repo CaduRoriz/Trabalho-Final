@@ -4,7 +4,7 @@ metadata:
   name: grpc-p
   namespace: pspd-grpc
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: grpc-p
@@ -13,6 +13,8 @@ spec:
       labels:
         app: grpc-p
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
       containers:
       - name: grpc-p
         image: grpc-p:latest

@@ -69,6 +69,12 @@ kubectl apply -f grpc/k8s/
 kubectl get pods -n pspd-grpc -o wide
 
 
+10. Restart do deployment (apenas se necessário para mudar pods)
+
+kubectl rollout restart deployment grpc-a -n pspd-grpc
+kubectl rollout restart deployment grpc-b -n pspd-grpc
+kubectl rollout restart deployment grpc-p -n pspd-grpc
+
 # comunicação - para testar 
 para ver as portas:
 kubectl get svc -n pspd-grpc
@@ -124,6 +130,8 @@ Para fazer os testes de carga e isolar os serviços afim de permitir uma anális
 1. fazer post-forward em um terminal
 kubectl port-forward svc/grpc-a -n pspd-grpc 50051:50051
 
+kubectl port-forward svc/grpc-b -n pspd-grpc 50052:50052
+
 2. Em outro terminal execute o seguinte comando para fazer 500 requisições ao serviço A
 for i in {1..50}; do
     grpcurl -plaintext \
@@ -138,12 +146,8 @@ done
 CPU:
 rate(container_cpu_usage_seconds_total{pod=~"grpc-a.*"}[1m])
 
-![Utilizando o exemplo anterior - CPU](assets\cpuUsageOnlyA.png)
-
 Memória:
 container_memory_usage_bytes{pod=~"grpc-a.*"}
-
-![Utilizando o exemplo anterior - Memória](assets\memUsageOnlyA.png)
 
 
 ## Principais querys Prometheus:
@@ -179,3 +183,38 @@ sum(container_memory_usage_bytes) by (node)
 kube_pod_info{namespace="pspd-grpc"}
 
 (não retorna gráfico, retorna txt com serviço e node)
+
+
+# Cenários
+
+## Cenário Base - Cenário 1 - Cluster com 3 nós + distribuição automática - AutoScaling Automático
+
+Esse cenário serve como referência.
+
+## Cenário 2 - Todos os serviços no mesmo nó
+
+No arquivos de deploy dos serviços A, B e P, alteramos os yalms para conter a config:
+
+nodeSelector:
+  kubernetes.io/hostname: minikube
+
+Esta config assegura que todos os serviços estejam rodando no mesmo nó.
+
+## Cenário 3 - cada serviço em 1 nó diferente
+
+Aqui, configuramos o nodeSelector para que cada arquivo de deployment tivesse um hostname diferente:
+A -> minikube
+B -> minikube-m02
+P -> minikube-m03
+
+## Cenário 4 - Cada serviço em 1 nó diferente porém com 2 réplicas para cada serviço
+
+Neste cenário, quisemos testar se o aumento de pods influencia na eficiência. Colocamos 2 réplicas para cada serviço A, B e P.
+
+## Cenário 5 - cada serviço em 1 nó diferente chamando A e B sem o P
+
+Utilizando esse cenário em que cada serviço esta em 1 nó, fizemos mais 1 teste de carga para que ao invés de chamar o serviços A e B através do P, chamassem diretamente os microserviços A e B.
+
+Aqui consideramos um estresse maior, ao inves de uma carga de 1500, utilizamos 5000.
+
+Entretanto, tivemos limitações para rodar esse cenário uma vez que o k6 ficou com diversos erros para ser executado.

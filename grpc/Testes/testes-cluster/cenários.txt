@@ -1,0 +1,23 @@
+Adicionar setup do computador no reltório
+
+1 cenário: 3 testes 300-800-1500 reqs por segundo respectivamente para comparar com os testes dos containers docker normal.
+    -  Esse é o cenário base com 3 pods
+    - Nesse cenário o nó 3 ta alOcoado o enpoind P e B(foi alocacao automática do cluster) (INFO IMPORTANTE PARA ANALISAR O GRÁFICO DE CONSUMO DE CPU POR NÓ)
+    - Os testes iniciaram as 15:20 mais ou menos
+    OBS: O docker stats sem fazer os testes(rodar as requisicoes) ja aponta um uso de cpu e memoria maior do que rodando os servicos apenas nos containers dockers
+    sem estarem clusterizados, imagino que manter o cluster custe cpu e memoria, entao talvez seja de fato o comportamento esperado
+
+- No teste de carga média os nós continuaram como estavam, servico P e B no mesmo nó enquanto o A isolado(gerencia automática do cluster)
+
+2 cenário: todos os 3 servicos estão rodando no mesmo nó
+
+3 cenário: cada serviço em um nó
+
+
+
+
+
+Script do k6 utilizado para cada um dos testes:
+
+
+4 cenário: cada servico com 2 replicas
