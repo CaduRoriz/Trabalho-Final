@@ -1,4 +1,4 @@
-# Relatório da Atividade Extraclasse — Aplicação Distribuída com gRPC e Kubernetes
+# Relatório do Trabalho Final — Aplicação Distribuída com gRPC, Cluter Kubernetes e Prometheus
 
 ### Curso: Engenharia de Software – Universidade de Brasília (UnB/FGA)  
 ### Disciplina: Programação para Sistemas Paralelos e Distribuídos (PSPD)  
@@ -14,7 +14,7 @@
 
 Link do Repositório: [link no github](https://github.com/CaduRoriz/Trabalho-Final)
 
-Link do vídeo de apresentação: [vídeo](adicionar)
+Link do vídeo de apresentação: [vídeo](https://youtu.be/BgtFeA8_C8g)
 
 
 ## 1. Introdução
@@ -264,8 +264,12 @@ done
 CPU:
 rate(container_cpu_usage_seconds_total{pod=~"grpc-a.*"}[1m])
 
+![Utilizando o exemplo anterior - CPU](./grpc/assets/cpuUsageOnlyA.png)
+
 Memória:
 container_memory_usage_bytes{pod=~"grpc-a.*"}
+
+![Utilizando o exemplo anterior - Memória](./grpc/assets/memUsageOnlyA.png)
 
 
 ## Principais querys Prometheus:
