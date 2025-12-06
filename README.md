@@ -321,44 +321,274 @@ kube_pod_info{namespace="pspd-grpc"}
 (não retorna gráfico, retorna txt com serviço e node)
 
 
-# Cenários
+# 📄 Análise de Resultados – Projeto de Paralelismo com Microserviços, Kubernetes, Prometheus e k6
 
-## Cenário Base - Cenário 1 - Cluster com 3 nós + distribuição automática - AutoScaling Automático
 
-Esse cenário serve como referência.
+Essa seção apresenta a análise dos resultados experimentais obtidos a partir da execução de uma arquitetura de microserviços composta por três serviços:
 
-## Cenário 2 - Todos os serviços no mesmo nó
+- **Serviço P (Gateway REST)** – Responsável por receber as requisições HTTP.
+- **Serviço A (gRPC)** – Responsável pela contagem de palavras.
+- **Serviço B (gRPC)** – Responsável pela contagem de vogais.
 
-No arquivos de deploy dos serviços A, B e P, alteramos os yalms para conter a config:
+O serviço P recebe uma entrada textual de aproximadamente **5.000 caracteres**, encaminha esta carga simultaneamente aos serviços A e B por meio de chamadas gRPC paralelas e retorna um resultado agregado ao cliente.
 
-nodeSelector:
-  kubernetes.io/hostname: minikube
+O objetivo principal do trabalho é **avaliar o impacto do paralelismo, da distribuição em cluster e da replicação de serviços no desempenho do sistema**, utilizando:
 
-Esta config assegura que todos os serviços estejam rodando no mesmo nó.
+- **k6** para testes de carga;
+- **Prometheus** para observabilidade (CPU e Memória);
+- **Docker Stats** para monitoramento direto;
+- **Minikube multinó** como ambiente de cluster Kubernetes.
 
-## Cenário 3 - cada serviço em 1 nó diferente
+---
 
-Aqui, configuramos o nodeSelector para que cada arquivo de deployment tivesse um hostname diferente:
-A -> minikube
-B -> minikube-m02
-P -> minikube-m03
+##  Metodologia Experimental
 
-## Cenário 4 - Cada serviço em 1 nó diferente porém com 2 réplicas para cada serviço
+Para a realização dos experimentos foram definidos de maneira prévia cinco cenários principais de teste. A definição foi realizada anteriormente ao início dos testes de modo a evitar qualquer tipo de viés na coleta dos dados. Essa escolha trás consigo uma abordagem acadêmica da experimentação, mas por outro lado talvez não explore o cenário prático de paralelismo, a seguir os 5 cenários escolhidos :
 
-Neste cenário, quisemos testar se o aumento de pods influencia na eficiência. Colocamos 2 réplicas para cada serviço A, B e P.
+| Cenário | Descrição |
+|--------|-----------|
+| Cenário 1 | Execução apenas com Docker, sem cluster |
+| Cenário 2 | Cluster Kubernetes com autoscaling |
+| Cenário 3 | Todos os serviços no mesmo nó |
+| Cenário 4 | Cada serviço em um nó distinto |
+| Cenário 5 | Cada serviço com 2 réplicas (estresse) |
 
-## Cenário 5 - cada serviço em 1 nó diferente chamando A e B sem o P
+Para a coleta de resultado dos experimentos foi utilizado a ferramenta de observabilidade Prometheus, e a ferramenta de teste de carga K6.
 
-Utilizando esse cenário em que cada serviço esta em 1 nó, fizemos mais 1 teste de carga para que ao invés de chamar o serviços A e B através do P, chamassem diretamente os microserviços A e B.
+Os testes de carga foram realizados com o executor `constant-arrival-rate`, variando entre **300, 800, 1500 e até 5000 requisições por segundo**.
 
-Aqui consideramos um estresse maior, ao inves de uma carga de 1500, utilizamos 5000.
+---
 
-Entretanto, tivemos limitações para rodar esse cenário uma vez que o k6 ficou com diversos erros para ser executado.
+# Análise por Cenário
+
+---
+
+## Cenário 1 – Execução sem Cluster (Docker Local)
+
+### Descrição
+Neste cenário, os três serviços foram executados como containers Docker independentes, sem orquestração por Kubernetes. Foram realizados três testes:
+
+- **Carga Baixa:** 300 req/s  
+- **Carga Média:** 800 req/s  
+- **Carga Alta:** ~1200 req/s (limite físico da máquina)
+
+### Principais Resultados (k6)
+
+| Carga | Req/s Efetivo | Latência Média | p95 | Erros |
+|--------|----------------|----------------|-----|--------|
+| Baixa | ~326 | ~70 ms | ~293 ms | 0% |
+| Média | ~859 | ~2,3 ms | ~4 ms | 0% |
+| Alta | ~1225 | ~1178 ms | ~760 ms | ~0,75% |
+
+### Análise
+
+- Em **baixa e média carga**, o sistema apresentou **excelente estabilidade e baixa latência**.
+- Em **alta carga**, ocorreram:
+  - Saturação total de CPU;
+  - Latências superiores a 1 segundo;
+  - Erros de requisição e iterações descartadas.
+
+ Conclusão:  
+A arquitetura **funciona corretamente até um limite físico**, porém **não é escalável sem clusterização**, tornando o serviço P um **gargalo central**.
+
+---
+
+##  Cenário 2 – Cluster Kubernetes com Autoscaling
+
+### Descrição
+Os serviços passaram a ser gerenciados pelo Kubernetes, com distribuição automática dos pods entre os nós. Em alguns momentos, o serviço P e B ficaram no mesmo nó, enquanto o serviço A ficou isolado.
+
+### Resultados
+
+| Carga | Req/s Efetivo | Latência Média | Taxa de Erro |
+|--------|----------------|----------------|----------------|
+| Baixa | ~243 | ~1114 ms | 0% |
+| Média | ~532 | ~1059 ms | ~65% |
+| Alta | ~1493 | ~329 ms | ~86% |
+
+### Análise
+
+Mesmo em **carga baixa**, a latência já se apresentou **elevada**, indicando:
+
+- Overhead do cluster;
+- Saturação de nós;
+- Gargalos na comunicação entre pods.
+
+ Conclusão:  
+Apenas utilizar Kubernetes com autoscaling **não garante melhoria automática de desempenho** se não houver planejamento adequado da distribuição de carga.
+
+---
+
+##  Cenário 3 – Todos os Serviços no Mesmo Nó
+
+### Descrição
+Neste cenário, todos os serviços (P, A e B) foram executados dentro de um único nó do cluster, com teste direto em carga alta (1500 req/s).
+
+### Resultados
+
+| Métrica | Valor |
+|--------|--------|
+| Req/s | ~1513 |
+| Latência Média | ~284 ms |
+| p95 | ~1647 ms |
+| Taxa de Erro | ~87,5% |
+
+### Análise
+
+- Forte contenção de CPU;
+- Altíssimo índice de falhas;
+- Gargalo extremo de escalonamento.
+
+ Conclusão:  
+Este cenário comprova que **colocar todos os serviços em um único nó anula totalmente o paralelismo**.
+
+---
+
+##  Cenário 4 – Cada Serviço em um Nó Distinto
+
+### Descrição
+Cada serviço foi alocado em um nó diferente, sem replicações, com carga alta de 1500 req/s.
+
+### Resultados
+
+| Métrica | Valor |
+|--------|--------|
+| Req/s | ~1456 |
+| Latência Média | ~503 ms |
+| p95 | ~1251 ms |
+| Taxa de Erro | ~87,5% |
+
+### Análise
+
+- Distribuir os serviços em nós distintos **reduz a contenção direta de CPU**, mas:
+  - Não elimina gargalos;
+  - Não evita falhas sob alta carga;
+  - Continua existindo ponto único de falha (serviço P).
+
+Conclusão:  
+A separação por nós melhora parcialmente o desempenho, mas **não resolve o problema sem replicação**.
+
+---
+
+## Cenário 5 – Cada Serviço com 2 Réplicas + Teste de Estresse (5000 req/s)
+
+### Descrição
+Neste cenário final:
+
+- Cada serviço (P, A, B) possuía **2 réplicas (total de 6 pods)**;
+- Cluster com **3 nós**;
+- Teste em **carga extrema: 5000 req/s**.
+
+### Resultados
+
+| Métrica | Valor |
+|--------|--------|
+| Req/s | ~4187 |
+| Latência Média | ~239 ms |
+| p95 | ~1423 ms |
+| Taxa de Erro | ~93,6% |
+| Throughput Enviado | ~23 MB/s |
+
+### Análise
+
+Apesar da arquitetura estar mais distribuída:
+
+- O volume de carga extrapolou a capacidade total do cluster;
+- Houve alta taxa de falhas;
+- Crescimento absurdo de `http_req_blocked` e `dropped_iterations`.
+
+Conclusão:  
+Mesmo com **replicação**, o sistema possui **limites físicos claros**, especialmente quando submetido a cargas extremas.
+
+---
+
+# Tabela Comparativa Geral
+
+| Cenário | Arquitetura | Req/s | Latência Média | Taxa de Erro | Estabilidade |
+|--------|--------------|--------|----------------|----------------|----------------|
+| 1 | Docker local | ~1225 | ~1178 ms | ~0,75% | Média |
+| 2 | Kubernetes autoscaling | ~1493 | ~329–1059 ms | Até 86% | Baixa |
+| 3 | Todos no mesmo nó | ~1513 | ~284 ms | ~87% | Muito baixa |
+| 4 | Cada serviço em um nó | ~1456 | ~503 ms | ~87% | Baixa |
+| 5 | 2 réplicas por serviço | ~4187 | ~239 ms | ~93% | Baixa |
+
+---
+
+# 5. Conclusões Gerais
+
+A partir da análise dos cinco cenários experimentais realizados, foi possível observar de forma prática e mensurável os impactos diretos do **paralelismo, da clusterização, da distribuição de serviços e da replicação de pods no desempenho de sistemas distribuídos**.
+
+Inicialmente, no cenário sem clusterização (apenas Docker), o sistema apresentou **ótima estabilidade em cargas baixas e médias**, mantendo baixíssimos tempos de resposta e ausência total de falhas. No entanto, à medida que a carga aumentou, ficou evidente a existência de um **limite físico bem definido da máquina host**, caracterizado por:
+- Saturação de CPU;
+- Crescimento abrupto da latência;
+- Ocorrência de erros e descarte de iterações no k6.
+
+Esse comportamento confirma que, mesmo com chamadas paralelas via gRPC entre os serviços A e B, a ausência de **distribuição de carga em múltiplos nós** transforma o serviço P (gateway) em um **ponto único de estrangulamento da arquitetura**.
+
+Com a introdução do Kubernetes, observou-se que a **clusterização por si só não garante aumento automático de desempenho**. Em alguns cenários, especialmente quando múltiplos serviços foram alocados no mesmo nó, houve:
+- Alto overhead do ambiente orquestrado;
+- Competição por recursos computacionais;
+- Aumento significativo da latência média;
+- Crescimento expressivo da taxa de falhas.
+
+Isso evidencia que a simples utilização de um cluster não é suficiente: é fundamental que exista **planejamento adequado da distribuição dos serviços entre os nós** para que os benefícios da computação distribuída sejam efetivamente alcançados.
+
+Nos testes em que **todos os serviços foram executados em um único nó**, ficou claro que essa configuração é altamente ineficiente sob cargas elevadas. Mesmo com paralelismo lógico entre os serviços, a contenção de CPU e memória no nível físico do nó anulou completamente qualquer ganho arquitetural, ocasionando:
+- Taxas de erro superiores a 80%;
+- Latência extremamente elevada;
+- Instabilidade generalizada do sistema.
+
+Quando os serviços passaram a ser distribuídos em **nós distintos**, foi possível observar uma melhora moderada na latência e um leve ganho de estabilidade. Ainda assim, mesmo nessa configuração, o sistema permaneceu vulnerável a falhas sob cargas elevadas, principalmente pela ausência de replicação do serviço P, que continuou sendo um **ponto único de falha**.
+
+O cenário mais robusto estruturalmente foi aquele em que **cada serviço possuía duas réplicas**, totalizando seis pods distribuídos no cluster. Nesta configuração, foi possível alcançar o maior throughput entre todos os experimentos, superando a marca de **4.000 requisições por segundo**, o que demonstra claramente o potencial da **replicação aliada à distribuição em múltiplos nós**. Todavia, mesmo nesse cenário, as cargas extremas impostas (até 5.000 req/s) ultrapassaram a capacidade total do ambiente, provocando:
+- Elevadas taxas de erro;
+- Crescimento do tempo de bloqueio de requisições (`http_req_blocked`);
+- Grande quantidade de iterações descartadas pelo k6.
+
+Esses resultados demonstram que todo sistema distribuído, independentemente da arquitetura adotada, está submetido a **limites físicos de processamento**, especialmente relacionados a CPU, memória, rede e capacidade de escalonamento dos nós.
+
+Além disso, os dados coletados pelo Prometheus foram fundamentais para identificar:
+- Picos de utilização de CPU;
+- Crescimento progressivo do consumo de memória;
+- Momentos de saturação completa dos recursos do cluster.
+
+Dessa forma, pode-se concluir que:
+
+- ✅ O **paralelismo via gRPC** entre os serviços A e B é eficiente e traz ganhos reais de desempenho;
+- ✅ A **clusterização com Kubernetes** oferece escalabilidade estrutural;
+- ✅ A **replicação de pods** é essencial para aumentar throughput e tolerância a falhas;
+- ❌ A **má distribuição de serviços entre nós** compromete severamente o desempenho;
+- ❌ A **ausência de replicação do gateway (serviço P)** torna o sistema altamente vulnerável;
+- ❌ Nenhuma arquitetura é imune aos **limites físicos do hardware**.
+
+Por fim, este trabalho evidencia, de forma prática, que **o desempenho de sistemas distribuídos não depende apenas da adoção de tecnologias modernas**, mas principalmente de **decisões corretas de arquitetura, distribuição de carga e observabilidade contínua**. O uso combinado de **k6, Prometheus, Docker e Kubernetes** mostrou-se essencial para validar hipóteses, identificar gargalos e compreender o comportamento real do sistema sob estresse.
+
+---
+
+
+# Disponibilidade dos Dados e Materiais
+
+Todos os dados experimentais utilizados para a análise de desempenho deste projeto estão disponíveis no próprio repositório, de forma a garantir a **transparência, reprodutibilidade e validação dos experimentos apresentados**.
+
+Estão disponibilizados no projeto:
+
+-  **Prints das telas do Prometheus**, contendo os gráficos de utilização de CPU e memória em todos os cenários testados;
+- **Prints do Docker Stats**, demonstrando em tempo real o consumo de recursos dos containers durante a execução dos testes;
+- **Arquivos de saída em formato JSON do k6**, contendo todas as métricas detalhadas de cada cenário de carga (baixa, média, alta e estresse).
+
+Esses materiais permitem que qualquer leitor interessado possa:
+
+- Validar os resultados apresentados neste relatório;
+- Reproduzir os testes em ambiente similar;
+- Realizar comparações com outras arquiteturas e abordagens de paralelismo.
+
+Dessa forma, o projeto atende aos princípios fundamentais de **reprodutibilidade científica e auditabilidade dos resultados**.
 
 
 # Dificuldades Encontradas
 
-# Conclusão
+escrever dificuldades *
+
 
 ### Autoavaliação:
 
