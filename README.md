@@ -321,14 +321,10 @@ kube_pod_info{namespace="pspd-grpc"}
 (não retorna gráfico, retorna txt com serviço e node)
 
 
-# 📄 Análise de Resultados – Projeto de Paralelismo com Microserviços, Kubernetes, Prometheus e k6
+# Análise de Resultados – Projeto de Paralelismo com Microserviços, Kubernetes, Prometheus e k6
 
 
-Essa seção apresenta a análise dos resultados experimentais obtidos a partir da execução de uma arquitetura de microserviços composta por três serviços:
-
-- **Serviço P (Gateway REST)** – Responsável por receber as requisições HTTP.
-- **Serviço A (gRPC)** – Responsável pela contagem de palavras.
-- **Serviço B (gRPC)** – Responsável pela contagem de vogais.
+Essa seção apresenta a análise dos resultados experimentais obtidos a partir da execução de uma arquitetura de microserviços.
 
 O serviço P recebe uma entrada textual de aproximadamente **5.000 caracteres**, encaminha esta carga simultaneamente aos serviços A e B por meio de chamadas gRPC paralelas e retorna um resultado agregado ao cliente.
 
@@ -554,12 +550,12 @@ Além disso, os dados coletados pelo Prometheus foram fundamentais para identifi
 
 Dessa forma, pode-se concluir que:
 
-- ✅ O **paralelismo via gRPC** entre os serviços A e B é eficiente e traz ganhos reais de desempenho;
-- ✅ A **clusterização com Kubernetes** oferece escalabilidade estrutural;
-- ✅ A **replicação de pods** é essencial para aumentar throughput e tolerância a falhas;
-- ❌ A **má distribuição de serviços entre nós** compromete severamente o desempenho;
-- ❌ A **ausência de replicação do gateway (serviço P)** torna o sistema altamente vulnerável;
-- ❌ Nenhuma arquitetura é imune aos **limites físicos do hardware**.
+- (+) O **paralelismo via gRPC** entre os serviços A e B é eficiente e traz ganhos reais de desempenho;
+- (+)A **clusterização com Kubernetes** oferece escalabilidade estrutural;
+- (+) A **replicação de pods** é essencial para aumentar throughput e tolerância a falhas;
+- (-) A **má distribuição de serviços entre nós** compromete severamente o desempenho;
+- (-) A **ausência de replicação do gateway (serviço P)** torna o sistema altamente vulnerável;
+- (-) Nenhuma arquitetura é imune aos **limites físicos do hardware**.
 
 Por fim, este trabalho evidencia, de forma prática, que **o desempenho de sistemas distribuídos não depende apenas da adoção de tecnologias modernas**, mas principalmente de **decisões corretas de arquitetura, distribuição de carga e observabilidade contínua**. O uso combinado de **k6, Prometheus, Docker e Kubernetes** mostrou-se essencial para validar hipóteses, identificar gargalos e compreender o comportamento real do sistema sob estresse.
 
@@ -587,7 +583,7 @@ Dessa forma, o projeto atende aos princípios fundamentais de **reprodutibilidad
 
 # Dificuldades Encontradas
 
-escrever dificuldades *
+Encontramos dificuldades para realizar cenários de testes de carga com a ferramenta k6 chamando os serviços A e B (grpc) diretamente. Tentamos por diversas vezes realizar a integração pelo método grpcurl com post-foward mas encontramos vários erros para executar os scripts com a ferramente. Devido a esse problema, infelizmente não conseguimos seguir com esse cenário para avaliar os microserviços sem as chamadas via endpoint passadas pelo P.
 
 
 ### Autoavaliação:
