@@ -370,7 +370,7 @@ Neste cenário, os três serviços foram executados como containers Docker indep
 
 - **Carga Baixa:** 300 req/s  
 - **Carga Média:** 800 req/s  
-- **Carga Alta:** ~1200 req/s (limite físico da máquina)
+- **Carga Alta:** 1500 req/s
 
 ### Principais Resultados (k6)
 
